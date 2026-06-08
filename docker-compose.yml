@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  proxy:
+    image: nginx:alpine
+    container_name: nginx_loadbalancer
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - frontend_net
+    depends_on:
+      - api-service
+
+  api-service:
+    build: ./app
+    deploy:
+      replicas: 3
+    environment:
+      - APP_NAME=NodeJS-Backend-Worker
+    networks:
+      - frontend_net 
+      - backend_net  
+    depends_on:
+      - redis-db
+
+  redis-db:
+    image: redis:alpine
+    container_name: secure_redis
+    volumes:
+      - cache_data:/data
+    networks:
+      - backend_net 
+
+volumes:
+  cache_data:
+
+networks:
+  frontend_net:
+  backend_net:
